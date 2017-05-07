@@ -4,12 +4,13 @@ using UnityEngine.Networking;
 public class PlayerController : NetworkBehaviour {
 
 	private Rigidbody2D rgb;
+	private Animator anim;
 	public Transform top_left;
 	public Transform bottom_right;
 	public LayerMask ground_layer;
 	// Move variables
 	public float moveScale = 20f;
-	private bool facingRight;
+	private bool facingRight = true;
 	// Jump variables
 	public float minJumpForce = 2.0f;
 	public float addlJumpForce = 0.5f;
@@ -29,6 +30,7 @@ public class PlayerController : NetworkBehaviour {
 
 	private void Awake() {
 		rgb = GetComponent<Rigidbody2D>();
+		anim = GetComponent<Animator> ();
 	}
 
 	void FixedUpdate() {
@@ -41,10 +43,11 @@ public class PlayerController : NetworkBehaviour {
 			float move = Input.GetAxis ("Horizontal");
 			float upVelocity = rgb.velocity.y;
 			rgb.velocity = new Vector2 (move * moveScale, upVelocity);
+			anim.SetBool ("isRunning", move != 0);
 
 			if (facingRight && move < 0 || !facingRight && move > 0) {
-				facingRight = !facingRight;
-			}
+				Flip ();
+}
 		}
 
 		// Keep player within bounds of window
@@ -52,6 +55,13 @@ public class PlayerController : NetworkBehaviour {
 		pos.x = Mathf.Clamp(pos.x, 0f, 1f);
 		pos.y = Mathf.Clamp(pos.y, 0f, 1f);
 		transform.position = Camera.main.ViewportToWorldPoint(pos);
+	}
+
+	void Flip() {
+		facingRight = !facingRight;
+		Vector3 scale = transform.localScale;
+		scale.x *= -1;
+		transform.localScale = scale;
 	}
 
 	void Update() {
